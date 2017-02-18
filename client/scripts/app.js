@@ -9,17 +9,36 @@ var app = {
   server: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages'
 };
 
-app.init = function() {
-  $(document).ready(function() {
+$(document).ready(function() {
+  app.init = function() {
 
-    $('.username').on('click', app.handleUsernameClick.bind(this));
-    $('.submit').on('submit', app.handleSubmit.bind(this));
-    $('.newRoom').on('change', app.renderRoom.bind(this));
+    // $('.username').on('click', app.handleUsernameClick.bind(this));
+    $('body').on('click', '.username', function(e) {
+      e.preventDefault();
+      console.log('username')
+      app.handleUsernameClick(e);
+    });
+    // $('.submit').on('submit', app.handleSubmit);
+    $('form').on('submit', function(e) {
+      e.preventDefault();
+      app.handleSubmit();
+    });
+    $('#roomselect').on('change', function() {
+      if ($(this).val() === 'New Room...') {
+        var roomName = prompt('What is the new name of your room?');
+        app.renderRoom(roomName);
+        console.log('THIS');
+      }
+    });
 
-  });
-};
+  };
+  app.init();
+  setInterval(app.fetch.bind(app), 2000);
+  // app.fetch();
+});
 
 app.send = function(message) {
+  console.log('APP SEND TEST');
   $.ajax({
     // This is the url you should use to communicate with the parse API server.
     url: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages',
@@ -38,14 +57,19 @@ app.send = function(message) {
 };
 app.handleUsernameClick = function(e) { 
   var newFriend = $(e.target).text();
+  // $(e.target).addClass('bold');
+  console.log('ETARGET:', e.target);
   app.friends.push(newFriend);
+  console.log('Friends pushed: ', app.friends);
 };
 
-app.handleSubmit = function(input) {
+app.handleSubmit = function() {
   //configure the message
-  app.message.text = $('textarea').val();
-  app.message.username = undefined;
-  app.message.roomname = '';
+  app.message.text = $('.textbox').val();
+  app.message.username = window.location.search.slice(10);
+  app.message.roomname = $('#roomselect option:selected').text();
+  console.log(app.message);
+  app.send(app.message);
 
 };
 
@@ -58,9 +82,12 @@ app.fetch = function() {
     contentType: 'application/json',
     success: function (data) {
       console.log('data is:', data);
-      // test(data);
-      // chatterbox = JSON.parse(data);
-      console.log('chatterbox is: ', chatterbox); 
+      data.results.forEach(function(value) {
+        if (value.roomname === $('#roomselect option:selected').text()) {
+          app.renderMessage(value);
+        }
+      });
+      
     },
     error: function (data) {
       // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
@@ -75,11 +102,15 @@ app.clearMessages = function() {
 };
 
 app.renderMessage = function(message) {
-  $('#chats').prepend('<p><a href="#" class="username">${message.userName}</a> ${message.text}</p>');
+  if (app.friends.indexOf(message.username) > -1) {
+    $('#chats').prepend(`<div><span><a href="#" class="username">${message.username}</a></span>  <b>${message.text}</b></div>`);
+  } else {
+    $('#chats').prepend(`<div><span><a href="#" class="username">${message.username}</a></span>  ${message.text}</div>`);
+  }
 };
 
 app.renderRoom = function(roomname) {
-  $('#roomSelect').prepend('<option>${roomname}</option>');
+  $('#roomselect').prepend(`<option>${roomname}</option>`);
   console.log('hi.');
 };
 
