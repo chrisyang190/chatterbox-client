@@ -72,7 +72,7 @@ app.handleSubmit = function() {
   app.message.text = $('.textbox').val();
   app.message.username = window.location.search.slice(10);
   app.message.roomname = $('#roomselect option:selected').text();
-  console.log(app.message);
+  // console.log(app.message);
   app.send(app.message);
 
 };
@@ -100,7 +100,9 @@ app.fetch = function() {
 
       // $('#roomselect').children('option').remove();
       data.results.forEach(function(value) {
-        console.log(app.rooms);
+        // console.log(app.rooms);
+        console.log(JSON.stringify(value.roomname));
+        var roomname = value.roomname.toString();
         if (app.rooms.indexOf(value.roomname) === -1) {
           app.rooms.push(value.roomname);
           app.renderRoom(value.roomname);
@@ -121,15 +123,18 @@ app.clearMessages = function() {
 };
 
 app.renderMessage = function(message) {
+  var username = JSON.stringify(message.username);
+  var text = JSON.stringify(message.text);
 
+  // var username = message.username.toString();
+  // var text = message.text.toString();
+  console.log(`${username}  ${text}`);
   if (app.friends.indexOf(message.username) > -1) {
     // var username = $('<p></p>');
     // username.text();
-    // var username = JSON.stringify(message.username);
-    // var text = JSON.stringify(message.text);
-    $('#chats').append(`<div class='message'><span><a href="#" class="username">${message.username}</a></span>  <b>${message.text}</b></div>`);
+    $('#chats').append(`<div class='message'><span><a href="#" class="username">${username}</a></span>  <b>${text}</b></div>`);
   } else {
-    $('#chats').append(`<div class='message'><span><a href="#" class="username">${message.username}</a></span>  ${message.text}</div>`);
+    $('#chats').append(`<div class='message'><span><a href="#" class="username">${username}</a></span>  ${text}</div>`);
   }
   // $('.message').slice(20).remove();
 };
