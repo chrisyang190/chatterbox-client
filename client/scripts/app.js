@@ -6,6 +6,7 @@ var app = {
     roomname: null
   },
   friends: [],
+  rooms: [],
   server: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages'
 };
 
@@ -15,24 +16,27 @@ $(document).ready(function() {
     // $('.username').on('click', app.handleUsernameClick.bind(this));
     $('body').on('click', '.username', function(e) {
       e.preventDefault();
-      console.log('username')
+      console.log('username');
       app.handleUsernameClick(e);
     });
     // $('.submit').on('submit', app.handleSubmit);
     $('form').on('submit', function(e) {
       e.preventDefault();
       app.handleSubmit();
+      $('.textbox').val('');
     });
-    $('#roomselect').on('change', function() {
-      if ($(this).val() === 'New Room...') {
-        var roomName = prompt('What is the new name of your room?');
-        app.renderRoom(roomName);
-        console.log('THIS');
-      }
+    $('.newroom').on('click', function() {
+      var roomName = prompt('What is the new name of your room?');
+      app.rooms.push(roomName);
+      app.renderRoom(roomName);
+      $('#roomselect').val(roomName);
+
+      console.log('THIS');
     });
 
   };
   app.init();
+  app.fetch();
   setInterval(app.fetch.bind(app), 2000);
   // app.fetch();
 });
@@ -72,19 +76,34 @@ app.handleSubmit = function() {
   app.send(app.message);
 
 };
-
+var newMessages = [];
 app.fetch = function() {
   $.ajax({
   // This is the url you should use to communicate with the parse API server.
     url: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages',
     type: 'GET',
-    data: Object,
+    data: {'order': '-createdAt'},
     contentType: 'application/json',
     success: function (data) {
       console.log('data is:', data);
+
+      newMessages = [];
       data.results.forEach(function(value) {
+        newMessages.push(value);
+      });
+      $('#chats').children('div').remove();
+      newMessages.forEach(function(value) {
         if (value.roomname === $('#roomselect option:selected').text()) {
           app.renderMessage(value);
+        }
+      });
+
+      // $('#roomselect').children('option').remove();
+      data.results.forEach(function(value) {
+        console.log(app.rooms);
+        if (app.rooms.indexOf(value.roomname) === -1) {
+          app.rooms.push(value.roomname);
+          app.renderRoom(value.roomname);
         }
       });
       
@@ -102,16 +121,22 @@ app.clearMessages = function() {
 };
 
 app.renderMessage = function(message) {
+
   if (app.friends.indexOf(message.username) > -1) {
-    $('#chats').prepend(`<div><span><a href="#" class="username">${message.username}</a></span>  <b>${message.text}</b></div>`);
+    // var username = $('<p></p>');
+    // username.text();
+    // var username = JSON.stringify(message.username);
+    // var text = JSON.stringify(message.text);
+    $('#chats').append(`<div class='message'><span><a href="#" class="username">${message.username}</a></span>  <b>${message.text}</b></div>`);
   } else {
-    $('#chats').prepend(`<div><span><a href="#" class="username">${message.username}</a></span>  ${message.text}</div>`);
+    $('#chats').append(`<div class='message'><span><a href="#" class="username">${message.username}</a></span>  ${message.text}</div>`);
   }
+  // $('.message').slice(20).remove();
 };
 
 app.renderRoom = function(roomname) {
   $('#roomselect').prepend(`<option>${roomname}</option>`);
-  console.log('hi.');
+  // console.log('hi.');
 };
 
 
