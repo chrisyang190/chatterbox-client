@@ -102,7 +102,7 @@ app.fetch = function() {
       data.results.forEach(function(value) {
         // console.log(app.rooms);
         console.log(JSON.stringify(value.roomname));
-        var roomname = value.roomname.toString();
+        var roomname = _escape(value.roomname);
         if (app.rooms.indexOf(value.roomname) === -1) {
           app.rooms.push(value.roomname);
           app.renderRoom(value.roomname);
@@ -122,9 +122,25 @@ app.clearMessages = function() {
 
 };
 
+var htmlEscapes = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#x27;',
+  '/': '&#x2F;'
+};
+var htmlEscaper = /[&<>"'\/]/g;
+
+var _escape = function(string) {
+  return ('' + string).replace(htmlEscaper, function(match) {
+    return htmlEscapes[match];
+  });
+};
+
 app.renderMessage = function(message) {
-  var username = JSON.stringify(message.username);
-  var text = JSON.stringify(message.text);
+  var username = _escape(message.username);
+  var text = _escape(message.text);
 
   // var username = message.username.toString();
   // var text = message.text.toString();
